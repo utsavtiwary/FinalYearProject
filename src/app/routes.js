@@ -10,5 +10,5 @@ module.exports = function(app) {
     });
 
     //api routes
-    require()
+    require('./api/user.server.routes')(app);
 };

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Dependencies for final year project",
   "scripts": {
-    "start": "node app/server.js"
+    "start": "node ./app/server.js",
+    "test": "mocha ./test/api"
   },
   "author": "utsavtiwary",
   "dependencies": {
@@ -11,5 +12,10 @@
     "express": "^4.13.4",
     "method-override": "^2.3.5",
     "mongoose": "^4.4.11"
+  },
+  "devDependencies": {
+    "mocha": "^2.4.5",
+    "should": "^8.3.0",
+    "supertest": "^1.2.0"
   }
 }
