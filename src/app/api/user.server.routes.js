@@ -16,23 +16,38 @@ module.exports = function(app) {
     });
 
     app.post('/api/users', function(req, res, next) {
-        var userData = req.body;
-        var user = new User({_id: userData.username});
-        user.save(function(err) {
+        var username = req.body.username;
+        User.findOne({_id: username}, function(err, user){
             if (err) {
                 return next(err);
             } else {
-                res.status(200).end();
+                if (user) {
+                    res.status(400).send({message: "This username is already in use"});
+                } else {
+                    var user = new User({_id: username});
+                    user.save(function(err) {
+                        if (err) {
+                            return next(err);
+                        } else {
+                            res.status(200).end();
+                        }
+                    });
+                }
             }
         });
     });
 
     app.delete('/api/users/:userId', function(req, res, next) {
-        User.remove({_id: req.params.userId}, function(err) {
+        User.findOneAndRemove({_id: req.params.userId}, function(err, user) {
             if (err) {
                 return next(err);
             } else {
-                res.status(200).end();
+                if (user) {
+                    res.status(200).end();
+                }
+                else {
+                    res.status(400).send({message: "This user doesn't exist or has already been deleted"});
+                }
             }
         })
     })

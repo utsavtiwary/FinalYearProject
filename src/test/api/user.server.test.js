@@ -10,10 +10,10 @@ var utils = require('../utils');
 var User = require('../../app/models/user.server.model');
 
 describe('GET users', function() {
+
     it("should return empty Json array", function(done){
         request(app)
             .get('/api/users')
-            .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(200)
             .end(function(err, res){
@@ -30,11 +30,10 @@ describe('GET users', function() {
         var user = new User({_id: "testUser1"});
         user.save(function(err) {
             if (err) {
-                throw err;
+                return done(err);
             } else {
                 request(app)
                     .get('/api/users')
-                    .set('Accept', 'application/json')
                     .expect('Content-Type', /json/)
                     .expect(200)
                     .end(function(err, res){
@@ -52,4 +51,96 @@ describe('GET users', function() {
     });
 });
 
+describe('POST users', function() {
 
+    it("should post user with specified id to database", function(done){
+        var testUser = "testUser";
+        request(app)
+            .post('/api/users')
+            .send({username: testUser})
+            .expect(200)
+            .end(function(err){
+                if (err) {
+                    return done(err);
+                } else {
+                    User.findOne({_id: testUser}, function(err, user){
+                        if (err) {
+                            return done(err);
+                        } else {
+                            user.id.should.equal(testUser);
+                            return done();
+                        }
+                    })
+                }
+            });
+    });
+
+    it("should not post duplicates to the server", function(done) {
+        var user1 = new User({_id: "user1"});
+        user1.save(function(err) {
+            if (err) {
+                return done(err);
+            } else {
+                request(app)
+                    .post('/api/users')
+                    .send({username: "user1"})
+                    .expect(400)
+                    .end(function(err, res) {
+                        if (err) {
+                            return done(err);
+                        } else {
+                            res.body.should.have.property('message');
+                            res.body.message.should.equal('This username is already in use');
+                            return done();
+                        }
+                    });
+            }
+        });
+    });
+});
+
+describe('DELETE users/:userId', function() {
+
+    it("should delete user with specified id from database", function(done) {
+        var testUser = "testUser";
+        var testUserObj = new User({_id: testUser});
+        testUserObj.save(function (err) {
+            if (err) {
+                return done(err);
+            } else {
+                request(app)
+                    .delete('/api/users/' + testUser)
+                    .expect(200)
+                    .end(function (err) {
+                        if (err) {
+                            return done(err);
+                        } else {
+                            User.findOne({_id: testUser}, function (err, user) {
+                                if (err) {
+                                    return done(err);
+                                } else {
+                                    should.equal(user, null);
+                                    return done();
+                                }
+                            });
+                        }
+                    });
+            }
+        });
+    });
+
+    it("should not be able to delete users that do not exist and reply with an appropriate message", function(done){
+        var testUser = "testUser";
+        request(app)
+            .delete('/api/users/' + testUser)
+            .expect(400)
+            .end(function(err, res) {
+                if (err) {
+                    return done(err);
+                } else {
+                    res.body.message.should.equal("This user doesn't exist or has already been deleted");
+                    return done(err);
+                }
+            });
+    });
+});

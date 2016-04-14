@@ -3,7 +3,7 @@
  */
 
 // modules =================================================
-
+var express        = require('express');
 var app            = require('./config/express');
 var mongoose       = require('mongoose');
 
@@ -14,6 +14,7 @@ var port = process.env.PORT || 8080;
 var db = require('./config/db');
 mongoose.connect(db.url_server);
 
+app.use(express.static(__dirname + '/public'));
 // start app ===============================================
 
 app.listen(port);
