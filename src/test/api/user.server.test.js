@@ -11,7 +11,7 @@ var User = require('../../app/models/user.server.model');
 
 describe('GET users', function() {
 
-    it("should return empty Json array", function(done){
+    it("should return empty JSON array on startup", function(done){
         request(app)
             .get('/api/users')
             .expect('Content-Type', /json/)
@@ -67,7 +67,7 @@ describe('POST users', function() {
                         if (err) {
                             return done(err);
                         } else {
-                            user.id.should.equal(testUser);
+                            should.exist(user);
                             return done();
                         }
                     })
@@ -99,6 +99,44 @@ describe('POST users', function() {
     });
 });
 
+describe('GET users/:userId', function() {
+
+    it("should get an existing user from the server", function(done) {
+        var user = "testUser";
+        var testUser = new User({_id: user});
+        testUser.save(function(err) {
+            if (err) return done(err);
+            else {
+                request(app)
+                    .get('/api/users/' + user)
+                    .expect(200)
+                    .end(function(err, res) {
+                        if (err) return done(err);
+                        else {
+                            res.body._id.should.equal(user);
+                            return done();
+                        }
+                    })
+            }
+        })
+    });
+
+    it("should return an error message if a get is queried for a user that does not exist", function(done) {
+        var user = "testUser";
+        request(app)
+            .get('/api/users/' + user)
+            .expect(400)
+            .end(function(err, res) {
+                if (err) return done(err);
+                else {
+                    should.exist(res.body.message);
+                    res.body.message.should.equal("This user does not exist.");
+                    return done();
+                }
+            })
+    })
+});
+
 describe('DELETE users/:userId', function() {
 
     it("should delete user with specified id from database", function(done) {
@@ -119,7 +157,7 @@ describe('DELETE users/:userId', function() {
                                 if (err) {
                                     return done(err);
                                 } else {
-                                    should.equal(user, null);
+                                    should.not.exist(user);
                                     return done();
                                 }
                             });

@@ -6,7 +6,7 @@ var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
 var articleSchema = new Schema({
-    title: {
+    description: {
         type: String,
         required: true
     },
@@ -16,7 +16,19 @@ var articleSchema = new Schema({
     },
     user: {
         type: String,
-        ref: 'User'
+        ref: 'User',
+        required: true
+    },
+    votes: {
+        type: {
+            upVoters: {
+                type: [{type: String, ref: 'User'}]
+            },
+            downVoters: {
+                type: [{type: String, ref: 'User'}]
+            }
+        },
+        default: {upVoters: [], downVoters: []}
     }
 });
 

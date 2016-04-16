@@ -10,7 +10,6 @@ angular.module('GoodStoriesAppRoutes', []).config(['$routeProvider', '$locationP
         .when('/', {
             templateUrl: 'views/home.html',
             controller: 'HomeController'
-        });
-
+        })
 
 }]);
