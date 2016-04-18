@@ -1,1 +1,6 @@
 <h1>{{header}}</h1>
+<div ng-repeat="user in users">
+    <a href="#" ng-click="setUserAndProgress(user._id)">{{user._id}}</a>
+    <p>{{user.articles.length}}</p>
+    <hr>
+</div>

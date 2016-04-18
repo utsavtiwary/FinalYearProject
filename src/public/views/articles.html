@@ -1,0 +1,7 @@
+<h1>{{header}}</h1>
+<div ng-repeat="article in articles">
+    <h3>{{article.description}}</h3>
+    <a ng-href="{{article.url}}"><p>{{article.url}}</p></a>
+    <p>{{article.votes.upVoters.length}}</p>
+    <p>{{article.votes.downVoters.length}}</p>
+</div>

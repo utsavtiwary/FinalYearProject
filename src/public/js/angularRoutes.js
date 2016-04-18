@@ -5,11 +5,14 @@
 angular.module('GoodStoriesAppRoutes', []).config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
 
     $routeProvider
-
-        // home page
         .when('/', {
             templateUrl: 'views/home.html',
             controller: 'HomeController'
         })
+        .when('/articles', {
+            templateUrl: 'views/articles.html',
+            controller: 'ArticlesController'
+        });
 
+    $locationProvider.html5Mode(true);
 }]);

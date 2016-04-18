@@ -44,10 +44,14 @@ module.exports = function(app) {
                 if (err) return next(err);
                 else {
                     if(article) {
-                        var listVoters = article.votes[voteProperty];
-                        var equalUser = listVoters.map(function(item) {
+                        var listUpVoters = article.votes.upVoters;
+                        var listDownVoters = article.votes.downVoters;
+                        var equalUser = listUpVoters.map(inList) + listDownVoters.map(inList);
+
+                        function inList(item) {
                             return item === req.body.user;
-                        });
+                        }
+
                         if (equalUser.indexOf(true) == -1) {
                             article.votes[voteProperty].push(req.body.user);
                             var updatedArticle = new Article(article);
@@ -59,7 +63,7 @@ module.exports = function(app) {
                             });
                         }
                         else {
-                            res.status(400).send({message: "The voter is already in the list of " + voteProperty});
+                            res.status(400).send({message: "User has already cast a vote."});
                         }
                     } else {
                         res.status(400).send({message: "This article doesn't exist."});

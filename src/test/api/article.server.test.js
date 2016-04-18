@@ -295,7 +295,27 @@ describe('POST articles/:articleId/votes', function() {
                         if (err) return done(err);
                         else {
                             should.exist(res.body.message);
-                            res.body.message.should.equal("The voter is already in the list of upVoters");
+                            res.body.message.should.equal("User has already cast a vote.");
+                            return done();
+                        }
+                    })
+            }
+        })
+    });
+
+    it('should not allow duplicate postings of users to list of voters when user has voted in different category', function(done) {
+        Article.findByIdAndUpdate(testId, {$push: {"votes.upVoters": 'testUser'}}, function(err, article) {
+            if (err) return done(err);
+            else {
+                request(app)
+                    .post('/api/articles/' + article.id + '/votes/down')
+                    .send({user: 'testUser'})
+                    .expect(400)
+                    .end(function(err, res) {
+                        if (err) return done(err);
+                        else {
+                            should.exist(res.body.message);
+                            res.body.message.should.equal("User has already cast a vote.");
                             return done();
                         }
                     })

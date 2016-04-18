@@ -7,5 +7,4 @@ module.exports = function(app) {
     //api routes
     require('./api/user.server.routes')(app);
     require('./api/article.server.routes')(app);
-
 };
