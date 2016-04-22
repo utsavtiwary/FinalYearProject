@@ -16,15 +16,15 @@ module.exports = function(app) {
     });
 
     app.post('/api/users', function(req, res, next) {
-        var username = req.body.username;
-        User.findById(username, function(err, user){
+        var username = req.body.local.username;
+        User.findOne({'local.username': username}, function(err, user){
             if (err) {
                 return next(err);
             } else {
                 if (user) {
                     res.status(400).send({message: "This username is already in use"});
                 } else {
-                    var user = new User({_id: username});
+                    var user = new User(req.body);
                     user.save(function(err) {
                         if (err) {
                             return next(err);
@@ -38,7 +38,7 @@ module.exports = function(app) {
     });
 
     app.get('/api/users/:userId', function(req, res, next) {
-        User.findById(req.params.userId, function(err, user) {
+        User.findOne(req.params.userId, function(err, user) {
             if (err) return next(err);
             else {
                 if (user) {

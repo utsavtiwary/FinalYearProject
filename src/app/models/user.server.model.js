@@ -6,8 +6,12 @@ var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
 var userSchema = new Schema({
-    _id: {
-        type: String,
+    local: {
+        type: {
+            username: {type: String, required: true},
+            email: {type: String, required: true},
+            password: {type: String, required: true}
+        },
         required: true
     },
     articles: {

@@ -27,7 +27,7 @@ describe('GET users', function() {
 
 
     it("should return a populated list if users exist", function(done){
-        var user = new User({_id: "testUser1"});
+        var user = new User({local: {username: "testUser1", email: "testUser@ic.ac.uk", password: "testPass"}});
         user.save(function(err) {
             if (err) {
                 return done(err);
@@ -42,7 +42,7 @@ describe('GET users', function() {
                         } else {
                             res.body.length.should.equal(1);
                             var user1 = res.body[0];
-                            user1._id.should.equal('testUser1');
+                            user1.local.username.should.equal('testUser1');
                             return done();
                         }
                     });
@@ -55,15 +55,17 @@ describe('POST users', function() {
 
     it("should post user with specified id to database", function(done){
         var testUser = "testUser";
+        var testEmail = "testUser@ic.ac.uk";
+        var testPass = "testPass";
         request(app)
             .post('/api/users')
-            .send({username: testUser})
+            .send({local: {username: testUser, email: testEmail, password: testPass}})
             .expect(200)
             .end(function(err){
                 if (err) {
                     return done(err);
                 } else {
-                    User.findOne({_id: testUser}, function(err, user){
+                    User.findOne({'local.username': testUser}, function(err, user){
                         if (err) {
                             return done(err);
                         } else {
@@ -76,14 +78,18 @@ describe('POST users', function() {
     });
 
     it("should not post duplicates to the server", function(done) {
-        var user1 = new User({_id: "user1"});
+        var testUser = "testUser";
+        var testEmail = "testUser@ic.ac.uk";
+        var testPass = "testPass";
+
+        var user1 = new User({local: {username: testUser, email: testEmail, password: testPass}});
         user1.save(function(err) {
             if (err) {
                 return done(err);
             } else {
                 request(app)
                     .post('/api/users')
-                    .send({username: "user1"})
+                    .send({local: {username: testUser, email: testEmail, password: testPass}})
                     .expect(400)
                     .end(function(err, res) {
                         if (err) {
@@ -102,18 +108,21 @@ describe('POST users', function() {
 describe('GET users/:userId', function() {
 
     it("should get an existing user from the server", function(done) {
-        var user = "testUser";
-        var testUser = new User({_id: user});
-        testUser.save(function(err) {
+        var testUser = "testUser";
+        var testEmail = "testUser@ic.ac.uk";
+        var testPass = "testPass";
+
+        var user1 = new User({local: {username: testUser, email: testEmail, password: testPass}});
+        user1.save(function(err, userDoc) {
             if (err) return done(err);
             else {
                 request(app)
-                    .get('/api/users/' + user)
+                    .get('/api/users/' + userDoc._id)
                     .expect(200)
                     .end(function(err, res) {
                         if (err) return done(err);
                         else {
-                            res.body._id.should.equal(user);
+                            res.body.local.username.should.equal(testUser);
                             return done();
                         }
                     })
@@ -122,7 +131,7 @@ describe('GET users/:userId', function() {
     });
 
     it("should return an error message if a get is queried for a user that does not exist", function(done) {
-        var user = "testUser";
+        var userId = "0000000000";
         request(app)
             .get('/api/users/' + user)
             .expect(400)
@@ -141,7 +150,9 @@ describe('DELETE users/:userId', function() {
 
     it("should delete user with specified id from database", function(done) {
         var testUser = "testUser";
-        var testUserObj = new User({_id: testUser});
+        var testPass = "testPass";
+        var testEmail = "testUser@ic.ac.uk";
+        var testUserObj = new User({local: {username: testUser, password: testPass, email: testEmail}});
         testUserObj.save(function (err) {
             if (err) {
                 return done(err);
@@ -153,7 +164,7 @@ describe('DELETE users/:userId', function() {
                         if (err) {
                             return done(err);
                         } else {
-                            User.findOne({_id: testUser}, function (err, user) {
+                            User.findOne({'local.username': testUser}, function (err, user) {
                                 if (err) {
                                     return done(err);
                                 } else {
@@ -168,9 +179,9 @@ describe('DELETE users/:userId', function() {
     });
 
     it("should not be able to delete users that do not exist and reply with an appropriate message", function(done){
-        var testUser = "testUser";
+        var testId = "0000000000";
         request(app)
-            .delete('/api/users/' + testUser)
+            .delete('/api/users/' + testId)
             .expect(400)
             .end(function(err, res) {
                 if (err) {
