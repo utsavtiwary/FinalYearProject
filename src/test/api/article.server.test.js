@@ -7,6 +7,7 @@ var should = require("should");
 
 var app = require('../../config/express');
 var utils = require('../utils');
+var mongoose = require('mongoose');
 
 var Article = require('../../app/models/article.server.model');
 var User = require('../../app/models/user.server.model');
@@ -32,14 +33,16 @@ describe('GET articles', function() {
     it('should return a populated list of articles if articles exist in DB', function(done) {
         var testArtDesc = "An article added for the purpose of testing";
         var testArtURL = "www.testArticle.com/test";
-        var username = "testUser";
 
-        var testUser = new User({_id: username});
-        var testArticle = new Article({description: testArtDesc, url: testArtURL, user: username});
+        var user = "testUser";
+        var testEmail = "testUser@ic.ac.uk";
+        var testPass = "testPass";
 
-        testUser.save()
-            .then(testArticle.save())
-            .then(function(){
+        var testUser = new User({local:{username: user, email: testEmail, password: testPass}});
+
+        testUser.save(function(err, userDoc) {
+            var testArticle = new Article({description: testArtDesc, url: testArtURL, user: userDoc._id});
+            testArticle.save(function(){
                 request(app)
                     .get(reqUrl)
                     .expect(200)
@@ -51,35 +54,39 @@ describe('GET articles', function() {
                             var article = res.body[0];
                             article.description.should.equal(testArtDesc);
                             article.url.should.equal(testArtURL);
-                            article.user.should.equal(username);
+                            article.user._id.should.equal(userDoc._id.toString());
                             return done();
                         }
                     })
             })
-
+        })
     });
 
 });
 
 describe('POST article', function() {
-    var reqUrl = '/api/articles'
+    var reqUrl = '/api/articles';
 
     it('should post an appropriate article to the database upon request', function(done) {
         var testDesc = "An article being posted for testing";
         var testURL = "www.testUrl.com/testing";
+
         var user = "testUser";
-        var testUser = new User({_id: user});
-        testUser.save()
-            .then(function() {
+        var testEmail = "testUser@ic.ac.uk";
+        var testPass = "testPass";
+
+        var testUser = new User({local:{username: user, email: testEmail, password: testPass}});
+
+        testUser.save(function(err, userDoc) {
                 request(app)
                     .post(reqUrl)
-                    .send({description: testDesc, url: testURL, user: user})
+                    .send({description: testDesc, url: testURL, user: userDoc._id})
                     .expect(200)
                     .end(function(err) {
                         if (err) {
                             return done(err);
                         } else {
-                            Article.findOne({description: testDesc, url: testURL, user: user}, function(err, article) {
+                            Article.findOne({description: testDesc, url: testURL, user: userDoc._id}, function(err, article) {
                                 if (err) {
                                     return done(err);
                                 } else {
@@ -93,7 +100,6 @@ describe('POST article', function() {
     });
 
     it('should post multiple articles to the server', function(done) {
-        var user = "testUser";
 
         var testDesc1 = "The first article's desc";
         var testURL1 = "www.testURL1.com";
@@ -101,31 +107,35 @@ describe('POST article', function() {
         var testDesc2 = "The second article's desc";
         var testURL2 = "www.testURL2.com";
 
-        var testUser = new User({_id: user});
+        var user = "testUser";
+        var testEmail = "testUser@ic.ac.uk";
+        var testPass = "testPass";
 
-        testUser.save(function(err){
+        var testUser = new User({local:{username: user, email: testEmail, password: testPass}});
+
+        testUser.save(function(err, userDoc){
                 if (err) return done(err);
                 else{
                     request(app)
                         .post(reqUrl)
-                        .send({description: testDesc1, url: testURL1, user: user})
+                        .send({description: testDesc1, url: testURL1, user: userDoc._id})
                         .expect(200)
                         .end(function(err) {
                             if (err) return done(err);
                             else{
                                 request(app)
                                     .post(reqUrl)
-                                    .send({description: testDesc2, url: testURL2, user: user})
+                                    .send({description: testDesc2, url: testURL2, user: userDoc._id})
                                     .expect(200)
                                     .end(function(err) {
                                         if (err) return done(err);
                                         else {
-                                            Article.findOne({description: testDesc1, url: testURL1, user: user},
+                                            Article.findOne({description: testDesc1, url: testURL1, user: userDoc._id},
                                                 function(err, article1) {
                                                     if (err) return done(err);
                                                     else {
                                                         should.exist(article1);
-                                                        Article.findOne({description: testDesc2, url: testURL2, user: user},
+                                                        Article.findOne({description: testDesc2, url: testURL2, user: userDoc._id},
                                                             function(err, article2) {
                                                                 if (err) return done(err);
                                                                 else {
@@ -144,7 +154,7 @@ describe('POST article', function() {
     });
 
     it('should not post an article to the server if the user is not in the database', function(done) {
-        var user = "testUser";
+        var user = mongoose.Types.ObjectId('000000000000');
         var testDesc = "The test article's desc";
         var testURL = "www.testURL.com";
 
@@ -156,7 +166,7 @@ describe('POST article', function() {
                 if (err) return done(err);
                 else {
                     should.exist(res.body.message);
-                    res.body.message.should.equal("This user does not exist. The article cannot be shared.")
+                    res.body.message.should.equal("This user does not exist. The article cannot be shared.");
                     return done();
                 }
             })
@@ -164,21 +174,25 @@ describe('POST article', function() {
 
     it('should push the article\'s id to the appropriate user\'s list of articles', function(done) {
         var user = "testUser";
+        var testEmail = "testUser@ic.ac.uk";
+        var testPass = "testPass";
+
+        var testUser = new User({local:{username: user, email: testEmail, password: testPass}});
+
         var testDesc = "The test article's desc";
         var testURL = "www.testURL.com";
 
-        var testUser = new User({_id: user});
-        testUser.save(function(err){
+        testUser.save(function(err, userDoc){
             if (err) return done(err);
             else {
                 request(app)
                     .post(reqUrl)
-                    .send({description: testDesc, url: testURL, user: user})
+                    .send({description: testDesc, url: testURL, user: userDoc._id})
                     .expect(200)
                     .end(function (err) {
                         if (err) return done(err);
                         else {
-                            User.findById(user)
+                            User.findById(userDoc._id)
                                 .populate('articles')
                                 .exec(function(err, userDoc) {
                                     if (err) return done(err);
@@ -199,19 +213,46 @@ describe('POST article', function() {
 
 describe('POST articles/:articleId/votes', function() {
     var testId = "";
+
+    var userId = "";
+    var voter1 = "";
+    var voter2 = "";
+
     beforeEach(function(done) {
-        var username = "testUser";
+        var user = "testUser";
+        var testEmail = "testUser@ic.ac.uk";
+        var testPass = "testPass";
+
         var testDesc = "Description for a test article";
         var testURL = "www.testUrl.com";
+        var userIdTest = mongoose.Types.ObjectId('000000000000');
 
-        var testArticle = new Article({description: testDesc, url: testURL, user: username});
+        var testArticle = new Article({description: testDesc, url: testURL, user: userIdTest});
 
         testArticle.save(function(err, article) {
             if (err) return done(err);
             else {
-                testId = article.id
-                var testUser = new User({_id: username, articles:[testId]});
-                testUser.save(done);
+                testId = article.id;
+                var testUser = new User({local:{username: user, email: testEmail, password: testPass}, articles:[testId]});
+                var voter1Desc = new User({local:{username: "voter1", email: "voter1@ic.ac.uk", password:"pass"}});
+                var voter2Desc = new User({local:{username: "voter2", email: "voter2@ic.ac.uk", password:"pass"}});
+                testUser.save(function(err, userDoc) {
+                    if (err) return done(err);
+                    else {
+                        userId = userDoc._id;
+                        voter1Desc.save(function(err, voter1Doc) {
+                            if (err) return done(err);
+                            else {
+                                voter1 = voter1Doc._id;
+                                voter2Desc.save(function(err, voter2Doc) {
+                                    if (err) return done(err);
+                                    voter2 = voter2Doc._id;
+                                    done();
+                                })
+                            }
+                        })
+                    }
+                });
             }
         })
     });
@@ -222,7 +263,7 @@ describe('POST articles/:articleId/votes', function() {
             else {
                 request(app)
                     .post('/api/articles/'+ article1.id + '/votes/up/')
-                    .send({user: 'testUser'})
+                    .send({user: voter1})
                     .expect(200)
                     .end(function(err) {
                         if (err) return done(err);
@@ -231,7 +272,7 @@ describe('POST articles/:articleId/votes', function() {
                                 if (err) return done(err);
                                 else {
                                     var upVoters = article.votes.upVoters;
-                                    upVoters[0].should.equal('testUser');
+                                    upVoters[0].should.equal(voter1.toString());
                                     return done();
                                 }
                             })
@@ -247,7 +288,7 @@ describe('POST articles/:articleId/votes', function() {
             else {
                 request(app)
                     .post('/api/articles/'+ article1.id + '/votes/down/')
-                    .send({user: 'testUser'})
+                    .send({user: voter1})
                     .expect(200)
                     .end(function(err) {
                         if (err) return done(err);
@@ -256,7 +297,7 @@ describe('POST articles/:articleId/votes', function() {
                                 if (err) return done(err);
                                 else {
                                     var downVoters = article.votes.downVoters;
-                                    downVoters[0].should.equal('testUser');
+                                    downVoters[0].should.equal(voter1.toString());
                                     return done();
                                 }
                             })
@@ -270,7 +311,7 @@ describe('POST articles/:articleId/votes', function() {
         Article.findByIdAndRemove(testId, function(err, article) {
             request(app)
                 .post('/api/articles/'+ article.id + '/votes/down/')
-                .send({user: "testUser"})
+                .send({user: voter1})
                 .expect(400)
                 .end(function(err, res) {
                     if (err) return done(err);
@@ -284,12 +325,12 @@ describe('POST articles/:articleId/votes', function() {
     });
 
     it('should not allow duplicate postings of users to list of voters', function(done) {
-        Article.findByIdAndUpdate(testId, {$push: {"votes.upVoters": 'testUser'}}, function(err, article) {
+        Article.findByIdAndUpdate(testId, {$push: {"votes.upVoters": voter1}}, function(err, article) {
             if (err) return done(err);
             else {
                 request(app)
                     .post('/api/articles/' + article.id + '/votes/up')
-                    .send({user: 'testUser'})
+                    .send({user: voter1})
                     .expect(400)
                     .end(function(err, res) {
                         if (err) return done(err);
@@ -304,12 +345,12 @@ describe('POST articles/:articleId/votes', function() {
     });
 
     it('should not allow duplicate postings of users to list of voters when user has voted in different category', function(done) {
-        Article.findByIdAndUpdate(testId, {$push: {"votes.upVoters": 'testUser'}}, function(err, article) {
+        Article.findByIdAndUpdate(testId, {$push: {"votes.upVoters": voter1}}, function(err, article) {
             if (err) return done(err);
             else {
                 request(app)
                     .post('/api/articles/' + article.id + '/votes/down')
-                    .send({user: 'testUser'})
+                    .send({user: voter1})
                     .expect(400)
                     .end(function(err, res) {
                         if (err) return done(err);

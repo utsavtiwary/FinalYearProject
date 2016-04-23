@@ -7,17 +7,19 @@ var User = require('../models/user.server.model');
 module.exports = function(app) {
 
     app.get('/api/articles', function(req, res, next) {
-        Article.find({}, function(err, articles) {
-            if (err) return next(err);
-            else {
-                res.send(articles);
-            }
-        })
+        Article.find({})
+            .populate('user')
+            .exec(function(err, articles) {
+                if (err) return next(err);
+                else {
+                    res.send(articles);
+                }
+            })
     });
 
     app.post('/api/articles', function(req, res, next) {
-        var username = req.body.user;
-        User.findOne({_id: username}, function(err, user) {
+        var userId = req.body.user;
+        User.findById(userId, function(err, user) {
             if (err) return next(err);
             else {
                 if (user) {
@@ -26,7 +28,7 @@ module.exports = function(app) {
                     article.save(function(err) {
                         if (err) return next(err);
                         else {
-                            User.findByIdAndUpdate(username, {$push: {"articles": article.id}}, function(err) {
+                            User.findByIdAndUpdate(user._id, {$push: {"articles": article.id}}, function(err) {
                                 res.status(200).end();
                             });
                         }
@@ -49,7 +51,7 @@ module.exports = function(app) {
                         var equalUser = listUpVoters.map(inList) + listDownVoters.map(inList);
 
                         function inList(item) {
-                            return item === req.body.user;
+                            return item == req.body.user;
                         }
 
                         if (equalUser.indexOf(true) == -1) {

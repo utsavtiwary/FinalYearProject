@@ -15,17 +15,17 @@ var articleSchema = new Schema({
         required: true
     },
     user: {
-        type: String,
+        type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
     votes: {
         type: {
             upVoters: {
-                type: [{type: String, ref: 'User'}]
+                type: [{type: Schema.Types.ObjectId, ref: 'User'}]
             },
             downVoters: {
-                type: [{type: String, ref: 'User'}]
+                type: [{type: Schema.Types.ObjectId, ref: 'User'}]
             }
         },
         default: {upVoters: [], downVoters: []}

@@ -6,6 +6,7 @@ var should = require("should");
 
 var app = require('../../config/express');
 var utils = require('../utils');
+var mongoose = require('mongoose');
 
 var User = require('../../app/models/user.server.model');
 
@@ -131,9 +132,9 @@ describe('GET users/:userId', function() {
     });
 
     it("should return an error message if a get is queried for a user that does not exist", function(done) {
-        var userId = "0000000000";
+        var userId = mongoose.Types.ObjectId('000000000000');
         request(app)
-            .get('/api/users/' + user)
+            .get('/api/users/' + userId)
             .expect(400)
             .end(function(err, res) {
                 if (err) return done(err);
@@ -153,12 +154,12 @@ describe('DELETE users/:userId', function() {
         var testPass = "testPass";
         var testEmail = "testUser@ic.ac.uk";
         var testUserObj = new User({local: {username: testUser, password: testPass, email: testEmail}});
-        testUserObj.save(function (err) {
+        testUserObj.save(function (err, user) {
             if (err) {
                 return done(err);
             } else {
                 request(app)
-                    .delete('/api/users/' + testUser)
+                    .delete('/api/users/' + user._id)
                     .expect(200)
                     .end(function (err) {
                         if (err) {
@@ -179,7 +180,7 @@ describe('DELETE users/:userId', function() {
     });
 
     it("should not be able to delete users that do not exist and reply with an appropriate message", function(done){
-        var testId = "0000000000";
+        var testId = mongoose.Types.ObjectId('000000000000');
         request(app)
             .delete('/api/users/' + testId)
             .expect(400)

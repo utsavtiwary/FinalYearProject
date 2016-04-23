@@ -38,7 +38,7 @@ module.exports = function(app) {
     });
 
     app.get('/api/users/:userId', function(req, res, next) {
-        User.findOne(req.params.userId, function(err, user) {
+        User.findById(req.params.userId, function(err, user) {
             if (err) return next(err);
             else {
                 if (user) {
@@ -51,6 +51,7 @@ module.exports = function(app) {
     });
 
     app.delete('/api/users/:userId', function(req, res, next) {
+
         User.findOneAndRemove({_id: req.params.userId}, function(err, user) {
             if (err) {
                 return next(err);
