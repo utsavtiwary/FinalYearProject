@@ -52,6 +52,7 @@ describe('GET users', function() {
     });
 });
 
+
 describe('POST users', function() {
 
     it("should post user with specified id to database", function(done){
@@ -60,7 +61,7 @@ describe('POST users', function() {
         var testPass = "testPass";
         request(app)
             .post('/api/users')
-            .send({local: {username: testUser, email: testEmail, password: testPass}})
+            .send({username: testUser, email: testEmail, password: testPass})
             .expect(200)
             .end(function(err){
                 if (err) {
@@ -83,7 +84,7 @@ describe('POST users', function() {
         var testEmail = "testUser@ic.ac.uk";
         var testPass = "testPass";
 
-        var user1 = new User({local: {username: testUser, email: testEmail, password: testPass}});
+        var user1 = new User({username: testUser, email: testEmail, password: testPass});
         user1.save(function(err) {
             if (err) {
                 return done(err);
@@ -105,6 +106,7 @@ describe('POST users', function() {
         });
     });
 });
+
 
 describe('GET users/:userId', function() {
 

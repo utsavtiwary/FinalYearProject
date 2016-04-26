@@ -11,10 +11,6 @@ var userSchema = new Schema({
         username: String,
         email: String,
         password: String
-    },
-    articles: {
-        type: [{type: Schema.Types.ObjectId, ref:'Article'}],
-        default: []
     }
 });
 

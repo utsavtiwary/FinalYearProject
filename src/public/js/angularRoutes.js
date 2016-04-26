@@ -6,12 +6,20 @@ angular.module('GoodStoriesAppRoutes', []).config(['$routeProvider', '$locationP
 
     $routeProvider
         .when('/', {
+            templateUrl: 'views/login.html',
+            controller: 'LoginController'
+        })
+        .when('/signup', {
+            templateUrl: 'views/signup.html',
+            controller: 'SignupController'
+        })
+        .when('/home', {
             templateUrl: 'views/home.html',
             controller: 'HomeController'
         })
-        .when('/articles', {
-            templateUrl: 'views/articles.html',
-            controller: 'ArticlesController'
+        .when('/addArticle', {
+            templateUrl: 'views/addArticle.html',
+            controller: 'ArticleController'
         });
 
     $locationProvider.html5Mode(true);

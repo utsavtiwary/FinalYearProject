@@ -36,7 +36,7 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 app.use(methodOverride('X-HTTP-Method-Override'));
 
 // routes ==================================================
-require('../app/routes')(app); // configure our routes
+require('../app/routes')(app, passport); // configure our routes
 
 // Expose app to tests or server
 module.exports = app;

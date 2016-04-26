@@ -4,12 +4,12 @@
 
 angular.module('UserService', ['ResponseHandleService']).service('userService', function($http, $q, responseHandler) {
 
-    var currentUser;
-
     return {
         getUsers: getUsers,
-        setCurrentUser: setCurrentUser,
-        getCurrentUsr: getCurrentUser
+        getCurrentUser: getCurrentUser,
+        login: login,
+        signup: signup,
+        logout: logout
     };
 
     function getUsers() {
@@ -17,11 +17,23 @@ angular.module('UserService', ['ResponseHandleService']).service('userService', 
             .then(responseHandler.handleSuccess, responseHandler.handleError);
     }
 
-    function setCurrentUser(user) {
-        currentUser = user;
+    function login(email, password) {
+        return $http.post('/login', {email: email, password: password})
+            .then(responseHandler.handleSuccess, responseHandler.handleError);
+    }
+
+    function signup(username, email, password) {
+        return $http.post('/api/users', {username: username, email: email, password: password})
+            .then(responseHandler.handleSuccess, responseHandler.handleError);
+    }
+
+    function logout() {
+        return $http.get('/logout')
+            .then(responseHandler.handleSuccess, responseHandler.handleError);
     }
 
     function getCurrentUser() {
-        return currentUser;
+        return $http.get('/currentUser')
+            .then(responseHandler.handleSuccess, responseHandler.handleError);
     }
 });

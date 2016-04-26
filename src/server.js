@@ -15,6 +15,9 @@ var db = require('./config/db');
 mongoose.connect(db.url_server);
 
 app.use(express.static(__dirname + '/public'));
+app.get('*', function(req, res) {
+    res.redirect('/');
+});
 // start app ===============================================
 
 app.listen(port);
