@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Dependencies for final year project",
   "scripts": {
-    "start": "node ./app/server.js",
+    "start": "node ./server.js",
     "test": "mocha ./test/api"
   },
   "author": "utsavtiwary",

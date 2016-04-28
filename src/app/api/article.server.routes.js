@@ -54,9 +54,7 @@ module.exports = function(app) {
                     article.save(function(err) {
                         if (err) return next(err);
                         else {
-                            User.findByIdAndUpdate(user._id, {$push: {"articles": article.id}}, function(err) {
-                                res.status(200).end();
-                            });
+                            res.end();
                         }
                     })
                 } else {
